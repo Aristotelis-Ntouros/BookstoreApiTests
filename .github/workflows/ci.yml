@@ -106,38 +106,7 @@ jobs:
       generate-report: true
 
   # ============================================
-  # Stage 3: Code Quality (parallel with tests)
-  # ============================================
-  code-quality:
-    name: Code Quality Analysis
-    needs: build
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: ${{ env.DOTNET_VERSION }}
-
-    - name: Restore dependencies
-      run: dotnet restore src/BookstoreApiTests.Tests/BookstoreApiTests.Tests.csproj
-
-    - name: Check code formatting
-      run: |
-        dotnet format src/BookstoreApiTests.Tests/BookstoreApiTests.Tests.csproj --verify-no-changes --verbosity diagnostic || echo "Formatting issues found"
-      continue-on-error: true
-
-    - name: Code Quality Summary
-      run: |
-        echo "## Code Quality Summary" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "Code analysis completed" >> $GITHUB_STEP_SUMMARY
-
-  # ============================================
-  # Stage 4: Deploy Report
+  # Stage 3: Deploy Report
   # ============================================
   deploy-report:
     name: Deploy Allure Report
@@ -183,31 +152,25 @@ jobs:
         echo "Allure Report deployed to: ${{ steps.deployment.outputs.page_url }}" >> $GITHUB_STEP_SUMMARY
 
   # ============================================
-  # Stage 5: Notification (final stage)
+  # Stage 4: Notification (final stage)
   # ============================================
   notify:
     name: Pipeline Summary
-    needs: [build, test, code-quality, deploy-report]
+    needs: [build, test, deploy-report]
     runs-on: ubuntu-latest
     if: always()
 
     steps:
     - name: Pipeline Summary
       run: |
-        echo "## Pipeline Execution Summary" >> $GITHUB_STEP_SUMMARY
+        echo "## Pipeline Summary" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "| Stage | Status |" >> $GITHUB_STEP_SUMMARY
         echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
         echo "| Build | ${{ needs.build.result }} |" >> $GITHUB_STEP_SUMMARY
         echo "| Test | ${{ needs.test.result }} |" >> $GITHUB_STEP_SUMMARY
-        echo "| Code Quality | ${{ needs.code-quality.result }} |" >> $GITHUB_STEP_SUMMARY
-        echo "| Deploy Report | ${{ needs.deploy-report.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Deploy | ${{ needs.deploy-report.result }} |" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### Build Information" >> $GITHUB_STEP_SUMMARY
-        echo "- **Version:** ${{ needs.build.outputs.build-version }}" >> $GITHUB_STEP_SUMMARY
-        echo "- **Triggered by:** ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
-        echo "- **Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
-        echo "- **Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Version:** ${{ needs.build.outputs.build-version }}" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### Reports" >> $GITHUB_STEP_SUMMARY
-        echo "- **Allure Report:** [View Report](https://aristotelis-ntouros.github.io/BookstoreApiTests/)" >> $GITHUB_STEP_SUMMARY
+        echo "**Allure Report:** [View](https://aristotelis-ntouros.github.io/BookstoreApiTests/)" >> $GITHUB_STEP_SUMMARY
