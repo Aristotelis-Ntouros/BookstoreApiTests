@@ -6,18 +6,108 @@ on:
   pull_request:
     branches: [ main, master ]
   workflow_dispatch:
+    inputs:
+      configuration:
+        description: 'Build configuration'
+        required: false
+        default: 'Release'
+        type: choice
+        options:
+          - Release
+          - Debug
 
 env:
   DOTNET_VERSION: '8.0.x'
+  CONFIGURATION: ${{ github.event.inputs.configuration || 'Release' }}
 
 jobs:
-  test:
+  # ============================================
+  # Stage 1: Build
+  # ============================================
+  build:
+    name: Build Solution
     runs-on: ubuntu-latest
 
-    permissions:
-      contents: read
-      checks: write
-      pull-requests: write
+    outputs:
+      build-version: ${{ steps.version.outputs.version }}
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Cache NuGet packages
+      uses: actions/cache@v4
+      with:
+        path: ~/.nuget/packages
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-
+
+    - name: Generate version
+      id: version
+      run: |
+        VERSION="1.0.${{ github.run_number }}"
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "Build version: $VERSION"
+
+    - name: Restore dependencies
+      run: dotnet restore src/BookstoreApiTests.Tests/BookstoreApiTests.Tests.csproj
+
+    - name: Build
+      run: |
+        dotnet build src/BookstoreApiTests.Tests/BookstoreApiTests.Tests.csproj \
+          --no-restore \
+          --configuration ${{ env.CONFIGURATION }} \
+          -p:Version=${{ steps.version.outputs.version }}
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-output
+        path: |
+          src/BookstoreApiTests.Tests/bin/${{ env.CONFIGURATION }}/net8.0/
+          !src/BookstoreApiTests.Tests/bin/${{ env.CONFIGURATION }}/net8.0/allure-results/
+        retention-days: 1
+
+    - name: Build Summary
+      run: |
+        echo "## Build Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "| Property | Value |" >> $GITHUB_STEP_SUMMARY
+        echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+        echo "| Version | ${{ steps.version.outputs.version }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Configuration | ${{ env.CONFIGURATION }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| .NET Version | ${{ env.DOTNET_VERSION }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Branch | ${{ github.ref_name }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Commit | ${{ github.sha }} |" >> $GITHUB_STEP_SUMMARY
+
+  # ============================================
+  # Stage 2: Test (calls reusable workflow)
+  # ============================================
+  test:
+    name: Execute Tests
+    needs: build
+    uses: ./.github/workflows/reusable-test.yml
+    with:
+      dotnet-version: '8.0.x'
+      configuration: ${{ github.event.inputs.configuration || 'Release' }}
+      run-tests: true
+      generate-report: true
+
+  # ============================================
+  # Stage 3: Code Quality (parallel with tests)
+  # ============================================
+  code-quality:
+    name: Code Quality Analysis
+    needs: build
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout repository
@@ -31,56 +121,37 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore src/BookstoreApiTests.Tests/BookstoreApiTests.Tests.csproj
 
-    - name: Build
-      run: dotnet build src/BookstoreApiTests.Tests/BookstoreApiTests.Tests.csproj --no-restore --configuration Release
-
-    - name: Run tests
-      run: dotnet test src/BookstoreApiTests.Tests/BookstoreApiTests.Tests.csproj --no-build --configuration Release --logger "trx;LogFileName=test-results.trx" --results-directory ./TestResults
+    - name: Check code formatting
+      run: |
+        dotnet format src/BookstoreApiTests.Tests/BookstoreApiTests.Tests.csproj --verify-no-changes --verbosity diagnostic || echo "Formatting issues found"
       continue-on-error: true
 
-    - name: Upload test results
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: test-results
-        path: ./TestResults/*.trx
-
-    - name: Install Allure
+    - name: Code Quality Summary
       run: |
-        curl -o allure-2.24.0.tgz -Ls https://github.com/allure-framework/allure2/releases/download/2.24.0/allure-2.24.0.tgz
-        tar -zxvf allure-2.24.0.tgz -C /opt/
-        sudo ln -s /opt/allure-2.24.0/bin/allure /usr/bin/allure
+        echo "## Code Quality Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "Code analysis completed" >> $GITHUB_STEP_SUMMARY
 
-    - name: Generate Allure Report
-      run: |
-        allure generate ./src/BookstoreApiTests.Tests/bin/Release/net8.0/allure-results --clean -o allure-report
-      continue-on-error: true
-
-    - name: Upload Allure Report
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: allure-report
-        path: allure-report
-
-    - name: Publish Test Results
-      uses: dorny/test-reporter@v1
-      if: always()
-      with:
-        name: Test Results
-        path: ./TestResults/*.trx
-        reporter: dotnet-trx
-        fail-on-error: false
-
+  # ============================================
+  # Stage 4: Deploy Report
+  # ============================================
   deploy-report:
-    needs: test
+    name: Deploy Allure Report
+    needs: [build, test]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+
+    outputs:
+      page-url: ${{ steps.deployment.outputs.page_url }}
 
     permissions:
       contents: read
       pages: write
       id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
     - name: Download Allure Report
@@ -100,3 +171,39 @@ jobs:
     - name: Deploy to GitHub Pages
       id: deployment
       uses: actions/deploy-pages@v4
+
+    - name: Deployment Summary
+      run: |
+        echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "Allure Report deployed to: ${{ steps.deployment.outputs.page_url }}" >> $GITHUB_STEP_SUMMARY
+
+  # ============================================
+  # Stage 5: Notification (final stage)
+  # ============================================
+  notify:
+    name: Pipeline Summary
+    needs: [build, test, code-quality, deploy-report]
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+    - name: Pipeline Summary
+      run: |
+        echo "## Pipeline Execution Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "| Stage | Status |" >> $GITHUB_STEP_SUMMARY
+        echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+        echo "| Build | ${{ needs.build.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Test | ${{ needs.test.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Code Quality | ${{ needs.code-quality.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Deploy Report | ${{ needs.deploy-report.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Build Information" >> $GITHUB_STEP_SUMMARY
+        echo "- **Version:** ${{ needs.build.outputs.build-version }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Triggered by:** ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "- **Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Reports" >> $GITHUB_STEP_SUMMARY
+        echo "- **Allure Report:** [View Report](https://aristotelis-ntouros.github.io/BookstoreApiTests/)" >> $GITHUB_STEP_SUMMARY
