@@ -2,7 +2,7 @@
 
 A comprehensive, enterprise-grade API test automation framework for testing the FakeRestAPI Bookstore endpoints using .NET 8, RestSharp, xUnit, and best-in-class libraries.
 
-## 🎯 Project Overview
+## Project Overview
 
 This project demonstrates senior-level API test automation skills, covering CRUD operations for both Books and Authors API endpoints with comprehensive test coverage including happy paths, edge cases, and error handling.
 
@@ -30,7 +30,7 @@ This project demonstrates senior-level API test automation skills, covering CRUD
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 BookstoreApiTests/
@@ -81,7 +81,7 @@ BookstoreApiTests/
 
 ---
 
-## 🛠️ Prerequisites
+## Prerequisites
 
 - [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
 - [Git](https://git-scm.com/)
@@ -89,7 +89,7 @@ BookstoreApiTests/
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### 1. Extract/Setup the Project
 
@@ -118,7 +118,7 @@ dotnet test
 
 ---
 
-## 🧪 Running Tests
+## Running Tests
 
 ### Run All Tests
 
@@ -168,7 +168,7 @@ dotnet test --logger "trx;LogFileName=test-results.trx" --results-directory ./Te
 
 ---
 
-## 🌍 Environment Configuration
+## Environment Configuration
 
 The framework supports multiple environments through configuration files:
 
@@ -214,7 +214,7 @@ TEST_ENVIRONMENT=Production dotnet test
 
 ---
 
-## 📊 Test Reporting
+## Test Reporting
 
 ### Allure Reports
 
@@ -240,7 +240,7 @@ allure open allure-report
 
 ---
 
-## 🔄 CI/CD Pipeline
+## CI/CD Pipeline
 
 The project includes a comprehensive GitHub Actions workflow with **reusable workflow architecture** for maintainability and DRY principles:
 
@@ -305,7 +305,7 @@ When triggering manually, you can configure:
 
 ---
 
-## 🧰 Technologies & Libraries
+## Technologies & Libraries
 
 | Technology | Purpose |
 |------------|---------|
@@ -321,7 +321,7 @@ When triggering manually, you can configure:
 
 ---
 
-## 🏗️ Architecture & Patterns
+## Architecture & Patterns
 
 ### API Client Pattern
 
@@ -369,7 +369,7 @@ Policy<RestResponse>
 
 ---
 
-## 📋 Test Coverage
+## Test Coverage
 
 ### Test Categories
 
@@ -401,7 +401,7 @@ Policy<RestResponse>
 
 ---
 
-## ✅ Best Practices Implemented
+## Best Practices Implemented
 
 - **Clean Architecture** - Clear separation of concerns
 - **DRY Principle** - Reusable clients, fixtures, and utilities
@@ -415,7 +415,7 @@ Policy<RestResponse>
 
 ---
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Tests Failing with Timeout
 
