@@ -113,7 +113,6 @@ jobs:
     permissions:
       contents: read
       checks: write
-      pull-requests: write
     uses: ./.github/workflows/run-tests.yml
     with:
       dotnet-version: '8.0.x'

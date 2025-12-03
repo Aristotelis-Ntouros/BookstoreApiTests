@@ -1,3 +1,5 @@
+using Xunit.Sdk;
+
 namespace BookstoreApiTests.Tests.Infrastructure;
 
 public static class TestCategories
@@ -8,28 +10,29 @@ public static class TestCategories
     public const string Performance = "Performance";
 }
 
+[TraitDiscoverer("BookstoreApiTests.Tests.Infrastructure.CategoryTraitDiscoverer", "BookstoreApiTests.Tests")]
 [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class, AllowMultiple = true)]
-public class TestCategoryAttribute : Attribute
-{
-    public string Category { get; }
+public class SmokeTestAttribute : Attribute, ITraitAttribute { }
 
-    public TestCategoryAttribute(string category)
+[TraitDiscoverer("BookstoreApiTests.Tests.Infrastructure.CategoryTraitDiscoverer", "BookstoreApiTests.Tests")]
+[AttributeUsage(AttributeTargets.Method | AttributeTargets.Class, AllowMultiple = true)]
+public class RegressionTestAttribute : Attribute, ITraitAttribute { }
+
+[TraitDiscoverer("BookstoreApiTests.Tests.Infrastructure.CategoryTraitDiscoverer", "BookstoreApiTests.Tests")]
+[AttributeUsage(AttributeTargets.Method | AttributeTargets.Class, AllowMultiple = true)]
+public class PerformanceTestAttribute : Attribute, ITraitAttribute { }
+
+public class CategoryTraitDiscoverer : ITraitDiscoverer
+{
+    public IEnumerable<KeyValuePair<string, string>> GetTraits(IAttributeInfo traitAttribute)
     {
-        Category = category;
+        var attributeTypeName = traitAttribute.AttributeType.Name;
+
+        if (attributeTypeName == nameof(SmokeTestAttribute))
+            yield return new KeyValuePair<string, string>("Category", TestCategories.Smoke);
+        else if (attributeTypeName == nameof(RegressionTestAttribute))
+            yield return new KeyValuePair<string, string>("Category", TestCategories.Regression);
+        else if (attributeTypeName == nameof(PerformanceTestAttribute))
+            yield return new KeyValuePair<string, string>("Category", TestCategories.Performance);
     }
-}
-
-public class SmokeTestAttribute : TestCategoryAttribute
-{
-    public SmokeTestAttribute() : base(TestCategories.Smoke) { }
-}
-
-public class RegressionTestAttribute : TestCategoryAttribute
-{
-    public RegressionTestAttribute() : base(TestCategories.Regression) { }
-}
-
-public class PerformanceTestAttribute : TestCategoryAttribute
-{
-    public PerformanceTestAttribute() : base(TestCategories.Performance) { }
 }
