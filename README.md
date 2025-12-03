@@ -11,6 +11,7 @@ This project demonstrates senior-level API test automation skills, covering CRUD
 **Base URL:** `https://fakerestapi.azurewebsites.net`
 
 **Books API Endpoints:**
+
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/api/v1/Books` | Retrieve all books |
@@ -20,6 +21,7 @@ This project demonstrates senior-level API test automation skills, covering CRUD
 | DELETE | `/api/v1/Books/{id}` | Delete a book |
 
 **Authors API Endpoints:**
+
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/api/v1/Authors` | Retrieve all authors |
@@ -119,12 +121,6 @@ dotnet test
 ---
 
 ## Running Tests
-
-### Run All Tests
-
-```bash
-dotnet test
-```
 
 ### Run with Detailed Output
 
@@ -391,12 +387,12 @@ Policy<RestResponse>
 
 | Endpoint | Happy Path | Edge Cases | Total Tests |
 |----------|------------|------------|-------------|
-| GET /Books | ✅ 4 | ✅ 1 | 5 |
-| GET /Books/{id} | ✅ 4 | ✅ 4 | 8 |
-| POST /Books | ✅ 2 | ✅ 6 | 8 |
-| PUT /Books/{id} | ✅ 4 | ✅ 6 | 10 |
-| DELETE /Books/{id} | ✅ 2 | ✅ 6 | 8 |
-| Authors API | ✅ Similar coverage | ✅ | ~35 |
+| GET /Books | 4 | 1 | 5 |
+| GET /Books/{id} | 4 | 4 | 8 |
+| POST /Books | 2 | 6 | 8 |
+| PUT /Books/{id} | 4 | 6 | 10 |
+| DELETE /Books/{id} | 2 | 6 | 8 |
+| Authors API | Similar coverage | Yes | ~35 |
 | **Total** | | | **~75 tests** |
 
 ---
