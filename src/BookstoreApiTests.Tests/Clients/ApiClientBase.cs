@@ -1,58 +1,75 @@
-using System.Net.Http.Json;
-using System.Text.Json;
+using System.Diagnostics;
+using RestSharp;
 using BookstoreApiTests.Tests.Configuration;
+using BookstoreApiTests.Tests.Infrastructure;
 
 namespace BookstoreApiTests.Tests.Clients;
 
 public abstract class ApiClientBase : IDisposable
 {
-    protected readonly HttpClient HttpClient;
-    protected readonly string BaseUrl;
+    protected readonly RestClient Client;
+    protected readonly ApiSettings Settings;
     private bool _disposed;
-
-    protected static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNameCaseInsensitive = true
-    };
 
     protected ApiClientBase()
     {
-        var settings = ConfigurationManager.GetApiSettings();
-        BaseUrl = settings.BaseUrl;
+        Settings = ConfigurationManager.GetApiSettings();
 
-        HttpClient = new HttpClient
+        var options = new RestClientOptions(Settings.BaseUrl)
         {
-            BaseAddress = new Uri(BaseUrl),
-            Timeout = TimeSpan.FromSeconds(settings.TimeoutSeconds)
+            Timeout = TimeSpan.FromSeconds(Settings.TimeoutSeconds)
         };
-        HttpClient.DefaultRequestHeaders.Add("Accept", "application/json");
+
+        Client = new RestClient(options);
+        TestLogger.Info($"API Client initialized - BaseUrl: {Settings.BaseUrl}, Environment: {ConfigurationManager.CurrentEnvironment}");
     }
 
-    protected async Task<HttpResponseMessage> GetAsync(string endpoint)
+    protected async Task<RestResponse> ExecuteWithRetry(RestRequest request)
     {
-        return await HttpClient.GetAsync(endpoint);
+        var sw = Stopwatch.StartNew();
+
+        TestLogger.Debug($"Request: {request.Method} {request.Resource}");
+
+        var response = await RetryPolicy.GetRetryPolicy()
+            .ExecuteAsync(() => Client.ExecuteAsync(request));
+
+        sw.Stop();
+        LogResponse(response, sw.ElapsedMilliseconds);
+
+        return response;
     }
 
-    protected async Task<T?> GetAsync<T>(string endpoint)
+    protected async Task<RestResponse<T>> ExecuteWithRetry<T>(RestRequest request)
     {
-        var response = await HttpClient.GetAsync(endpoint);
-        response.EnsureSuccessStatusCode();
-        return await response.Content.ReadFromJsonAsync<T>(JsonOptions);
+        var sw = Stopwatch.StartNew();
+
+        TestLogger.Debug($"Request: {request.Method} {request.Resource}");
+
+        var response = await RetryPolicy.GetRetryPolicy<T>()
+            .ExecuteAsync(() => Client.ExecuteAsync<T>(request));
+
+        sw.Stop();
+        LogResponse(response, sw.ElapsedMilliseconds);
+
+        return response;
     }
 
-    protected async Task<HttpResponseMessage> PostAsync<T>(string endpoint, T data)
+    private void LogResponse(RestResponse response, long elapsedMs)
     {
-        return await HttpClient.PostAsJsonAsync(endpoint, data, JsonOptions);
+        var logMessage = $"Response: {(int)response.StatusCode} {response.StatusCode} - {elapsedMs}ms";
+
+        if (response.IsSuccessful)
+            TestLogger.Debug(logMessage);
+        else
+            TestLogger.Warning($"{logMessage} - Error: {response.ErrorMessage}");
     }
 
-    protected async Task<HttpResponseMessage> PutAsync<T>(string endpoint, T data)
+    protected static void AssertResponseTime(long elapsedMs, int maxMs)
     {
-        return await HttpClient.PutAsJsonAsync(endpoint, data, JsonOptions);
-    }
-
-    protected async Task<HttpResponseMessage> DeleteAsync(string endpoint)
-    {
-        return await HttpClient.DeleteAsync(endpoint);
+        if (elapsedMs > maxMs)
+        {
+            TestLogger.Warning($"Response time {elapsedMs}ms exceeded threshold {maxMs}ms");
+        }
     }
 
     public void Dispose()
@@ -67,7 +84,7 @@ public abstract class ApiClientBase : IDisposable
         {
             if (disposing)
             {
-                HttpClient.Dispose();
+                Client.Dispose();
             }
             _disposed = true;
         }

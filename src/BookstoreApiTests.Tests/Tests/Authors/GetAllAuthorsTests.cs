@@ -2,6 +2,7 @@ using System.Net;
 using Allure.Xunit.Attributes;
 using FluentAssertions;
 using BookstoreApiTests.Tests.Fixtures;
+using BookstoreApiTests.Tests.Infrastructure;
 
 namespace BookstoreApiTests.Tests.Tests.Authors;
 
@@ -18,53 +19,60 @@ public class GetAllAuthorsTests
     }
 
     [Fact]
+    [SmokeTest]
+    [RegressionTest]
     [AllureFeature("Get All Authors")]
     [AllureStory("Happy Path")]
     public async Task GetAllAuthors_ReturnsOkStatus()
     {
         // Act
-        var response = await _fixture.Client.GetAllAuthorsResponse();
+        var response = await _fixture.Client.GetAllAuthors();
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
     [Fact]
+    [SmokeTest]
+    [RegressionTest]
     [AllureFeature("Get All Authors")]
     [AllureStory("Happy Path")]
     public async Task GetAllAuthors_ReturnsNonEmptyList()
     {
         // Act
-        var authors = await _fixture.Client.GetAllAuthors();
+        var response = await _fixture.Client.GetAllAuthors();
 
         // Assert
-        authors.Should().NotBeNull();
-        authors.Should().NotBeEmpty();
+        response.IsSuccessful.Should().BeTrue();
+        response.Data.Should().NotBeNull();
+        response.Data.Should().NotBeEmpty();
     }
 
     [Fact]
+    [RegressionTest]
     [AllureFeature("Get All Authors")]
     [AllureStory("Happy Path")]
     public async Task GetAllAuthors_ReturnsValidAuthorStructure()
     {
         // Act
-        var authors = await _fixture.Client.GetAllAuthors();
+        var response = await _fixture.Client.GetAllAuthors();
 
         // Assert
-        authors.Should().NotBeNull();
-        var firstAuthor = authors!.First();
+        response.Data.Should().NotBeNull();
+        var firstAuthor = response.Data!.First();
         firstAuthor.Id.Should().BeGreaterThan(0);
     }
 
     [Fact]
+    [RegressionTest]
     [AllureFeature("Get All Authors")]
     [AllureStory("Happy Path")]
     public async Task GetAllAuthors_ReturnsJsonContentType()
     {
         // Act
-        var response = await _fixture.Client.GetAllAuthorsResponse();
+        var response = await _fixture.Client.GetAllAuthors();
 
         // Assert
-        response.Content.Headers.ContentType?.MediaType.Should().Be("application/json");
+        response.ContentType.Should().Contain("application/json");
     }
 }

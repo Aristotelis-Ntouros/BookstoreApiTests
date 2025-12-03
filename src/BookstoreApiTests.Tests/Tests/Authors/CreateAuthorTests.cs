@@ -3,6 +3,7 @@ using Allure.Xunit.Attributes;
 using FluentAssertions;
 using BookstoreApiTests.Tests.Fixtures;
 using BookstoreApiTests.Tests.Models;
+using BookstoreApiTests.Tests.Infrastructure;
 
 namespace BookstoreApiTests.Tests.Tests.Authors;
 
@@ -27,6 +28,8 @@ public class CreateAuthorTests
     };
 
     [Fact]
+    [SmokeTest]
+    [RegressionTest]
     [AllureFeature("Create Author")]
     [AllureStory("Happy Path")]
     public async Task CreateAuthor_WithValidData_ReturnsOkStatus()
@@ -42,6 +45,8 @@ public class CreateAuthorTests
     }
 
     [Fact]
+    [SmokeTest]
+    [RegressionTest]
     [AllureFeature("Create Author")]
     [AllureStory("Happy Path")]
     public async Task CreateAuthor_WithValidData_ReturnsCreatedAuthor()
@@ -51,15 +56,17 @@ public class CreateAuthorTests
         newAuthor.FirstName = "Test" + Guid.NewGuid().ToString()[..8];
 
         // Act
-        var createdAuthor = await _fixture.Client.CreateAuthorAndReturn(newAuthor);
+        var response = await _fixture.Client.CreateAuthor(newAuthor);
 
         // Assert
-        createdAuthor.Should().NotBeNull();
-        createdAuthor!.FirstName.Should().Be(newAuthor.FirstName);
-        createdAuthor.LastName.Should().Be(newAuthor.LastName);
+        response.IsSuccessful.Should().BeTrue();
+        response.Data.Should().NotBeNull();
+        response.Data!.FirstName.Should().Be(newAuthor.FirstName);
+        response.Data.LastName.Should().Be(newAuthor.LastName);
     }
 
     [Fact]
+    [RegressionTest]
     [AllureFeature("Create Author")]
     [AllureStory("Edge Case")]
     public async Task CreateAuthor_WithEmptyFirstName_ReturnsOkStatus()
@@ -76,6 +83,7 @@ public class CreateAuthorTests
     }
 
     [Fact]
+    [RegressionTest]
     [AllureFeature("Create Author")]
     [AllureStory("Edge Case")]
     public async Task CreateAuthor_WithNullNames_ReturnsOkStatus()
@@ -97,6 +105,7 @@ public class CreateAuthorTests
     }
 
     [Fact]
+    [RegressionTest]
     [AllureFeature("Create Author")]
     [AllureStory("Edge Case")]
     public async Task CreateAuthor_WithSpecialCharacters_ReturnsOkStatus()
@@ -114,6 +123,7 @@ public class CreateAuthorTests
     }
 
     [Fact]
+    [RegressionTest]
     [AllureFeature("Create Author")]
     [AllureStory("Edge Case")]
     public async Task CreateAuthor_WithNonExistentBookId_ReturnsOkStatus()

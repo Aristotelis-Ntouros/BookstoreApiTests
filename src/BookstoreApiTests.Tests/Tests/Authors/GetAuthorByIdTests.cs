@@ -2,6 +2,7 @@ using System.Net;
 using Allure.Xunit.Attributes;
 using FluentAssertions;
 using BookstoreApiTests.Tests.Fixtures;
+using BookstoreApiTests.Tests.Infrastructure;
 
 namespace BookstoreApiTests.Tests.Tests.Authors;
 
@@ -18,6 +19,8 @@ public class GetAuthorByIdTests
     }
 
     [Fact]
+    [SmokeTest]
+    [RegressionTest]
     [AllureFeature("Get Author By ID")]
     [AllureStory("Happy Path")]
     public async Task GetAuthorById_WithValidId_ReturnsOkStatus()
@@ -26,13 +29,15 @@ public class GetAuthorByIdTests
         var validId = 1;
 
         // Act
-        var response = await _fixture.Client.GetAuthorByIdResponse(validId);
+        var response = await _fixture.Client.GetAuthorById(validId);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
     [Fact]
+    [SmokeTest]
+    [RegressionTest]
     [AllureFeature("Get Author By ID")]
     [AllureStory("Happy Path")]
     public async Task GetAuthorById_WithValidId_ReturnsCorrectAuthor()
@@ -41,29 +46,32 @@ public class GetAuthorByIdTests
         var validId = 1;
 
         // Act
-        var author = await _fixture.Client.GetAuthorById(validId);
+        var response = await _fixture.Client.GetAuthorById(validId);
 
         // Assert
-        author.Should().NotBeNull();
-        author!.Id.Should().Be(validId);
+        response.IsSuccessful.Should().BeTrue();
+        response.Data.Should().NotBeNull();
+        response.Data!.Id.Should().Be(validId);
     }
 
     [Theory]
     [InlineData(1)]
     [InlineData(5)]
     [InlineData(10)]
+    [RegressionTest]
     [AllureFeature("Get Author By ID")]
     [AllureStory("Happy Path")]
     public async Task GetAuthorById_WithVariousValidIds_ReturnsOkStatus(int authorId)
     {
         // Act
-        var response = await _fixture.Client.GetAuthorByIdResponse(authorId);
+        var response = await _fixture.Client.GetAuthorById(authorId);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
     [Fact]
+    [RegressionTest]
     [AllureFeature("Get Author By ID")]
     [AllureStory("Edge Case")]
     public async Task GetAuthorById_WithNonExistentId_ReturnsNotFound()
@@ -72,13 +80,14 @@ public class GetAuthorByIdTests
         var nonExistentId = 999999;
 
         // Act
-        var response = await _fixture.Client.GetAuthorByIdResponse(nonExistentId);
+        var response = await _fixture.Client.GetAuthorById(nonExistentId);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
     [Fact]
+    [RegressionTest]
     [AllureFeature("Get Author By ID")]
     [AllureStory("Edge Case")]
     public async Task GetAuthorById_WithZeroId_ReturnsNotFound()
@@ -87,13 +96,14 @@ public class GetAuthorByIdTests
         var zeroId = 0;
 
         // Act
-        var response = await _fixture.Client.GetAuthorByIdResponse(zeroId);
+        var response = await _fixture.Client.GetAuthorById(zeroId);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
     [Fact]
+    [RegressionTest]
     [AllureFeature("Get Author By ID")]
     [AllureStory("Edge Case")]
     public async Task GetAuthorById_WithNegativeId_ReturnsNotFound()
@@ -102,7 +112,7 @@ public class GetAuthorByIdTests
         var negativeId = -1;
 
         // Act
-        var response = await _fixture.Client.GetAuthorByIdResponse(negativeId);
+        var response = await _fixture.Client.GetAuthorById(negativeId);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);

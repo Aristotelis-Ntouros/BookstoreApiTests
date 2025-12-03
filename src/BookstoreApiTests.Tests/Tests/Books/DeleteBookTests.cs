@@ -2,6 +2,7 @@ using System.Net;
 using Allure.Xunit.Attributes;
 using FluentAssertions;
 using BookstoreApiTests.Tests.Fixtures;
+using BookstoreApiTests.Tests.Infrastructure;
 
 namespace BookstoreApiTests.Tests.Tests.Books;
 
@@ -18,6 +19,8 @@ public class DeleteBookTests
     }
 
     [Fact]
+    [SmokeTest]
+    [RegressionTest]
     [AllureFeature("Delete Book")]
     [AllureStory("Happy Path")]
     public async Task DeleteBook_WithValidId_ReturnsOkStatus()
@@ -36,6 +39,7 @@ public class DeleteBookTests
     [InlineData(1)]
     [InlineData(10)]
     [InlineData(100)]
+    [RegressionTest]
     [AllureFeature("Delete Book")]
     [AllureStory("Happy Path")]
     public async Task DeleteBook_WithVariousValidIds_ReturnsOkStatus(int bookId)
@@ -48,6 +52,7 @@ public class DeleteBookTests
     }
 
     [Fact]
+    [RegressionTest]
     [AllureFeature("Delete Book")]
     [AllureStory("Edge Case")]
     public async Task DeleteBook_WithNonExistentId_ReturnsOkStatus()
@@ -63,6 +68,7 @@ public class DeleteBookTests
     }
 
     [Fact]
+    [RegressionTest]
     [AllureFeature("Delete Book")]
     [AllureStory("Edge Case")]
     public async Task DeleteBook_WithZeroId_ReturnsOkStatus()
@@ -78,6 +84,7 @@ public class DeleteBookTests
     }
 
     [Fact]
+    [RegressionTest]
     [AllureFeature("Delete Book")]
     [AllureStory("Edge Case")]
     public async Task DeleteBook_WithNegativeId_ReturnsOkStatus()
@@ -93,6 +100,7 @@ public class DeleteBookTests
     }
 
     [Fact]
+    [RegressionTest]
     [AllureFeature("Delete Book")]
     [AllureStory("Edge Case")]
     public async Task DeleteBook_WithMaxIntId_ReturnsOkStatus()
@@ -108,6 +116,7 @@ public class DeleteBookTests
     }
 
     [Fact]
+    [RegressionTest]
     [AllureFeature("Delete Book")]
     [AllureStory("Edge Case")]
     public async Task DeleteBook_CalledTwiceOnSameId_BothReturnOkStatus()

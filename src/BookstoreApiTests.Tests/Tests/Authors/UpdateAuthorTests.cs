@@ -3,6 +3,7 @@ using Allure.Xunit.Attributes;
 using FluentAssertions;
 using BookstoreApiTests.Tests.Fixtures;
 using BookstoreApiTests.Tests.Models;
+using BookstoreApiTests.Tests.Infrastructure;
 
 namespace BookstoreApiTests.Tests.Tests.Authors;
 
@@ -27,6 +28,8 @@ public class UpdateAuthorTests
     };
 
     [Fact]
+    [SmokeTest]
+    [RegressionTest]
     [AllureFeature("Update Author")]
     [AllureStory("Happy Path")]
     public async Task UpdateAuthor_WithValidData_ReturnsOkStatus()
@@ -43,6 +46,8 @@ public class UpdateAuthorTests
     }
 
     [Fact]
+    [SmokeTest]
+    [RegressionTest]
     [AllureFeature("Update Author")]
     [AllureStory("Happy Path")]
     public async Task UpdateAuthor_WithValidData_ReturnsUpdatedAuthor()
@@ -53,14 +58,16 @@ public class UpdateAuthorTests
         updatedAuthor.FirstName = "Updated" + Guid.NewGuid().ToString()[..8];
 
         // Act
-        var result = await _fixture.Client.UpdateAuthorAndReturn(authorId, updatedAuthor);
+        var response = await _fixture.Client.UpdateAuthor(authorId, updatedAuthor);
 
         // Assert
-        result.Should().NotBeNull();
-        result!.FirstName.Should().Be(updatedAuthor.FirstName);
+        response.IsSuccessful.Should().BeTrue();
+        response.Data.Should().NotBeNull();
+        response.Data!.FirstName.Should().Be(updatedAuthor.FirstName);
     }
 
     [Fact]
+    [RegressionTest]
     [AllureFeature("Update Author")]
     [AllureStory("Edge Case")]
     public async Task UpdateAuthor_WithNonExistentId_ReturnsOkStatus()
@@ -77,6 +84,7 @@ public class UpdateAuthorTests
     }
 
     [Fact]
+    [RegressionTest]
     [AllureFeature("Update Author")]
     [AllureStory("Edge Case")]
     public async Task UpdateAuthor_WithZeroId_ReturnsOkStatus()
@@ -93,6 +101,7 @@ public class UpdateAuthorTests
     }
 
     [Fact]
+    [RegressionTest]
     [AllureFeature("Update Author")]
     [AllureStory("Edge Case")]
     public async Task UpdateAuthor_WithNegativeId_ReturnsOkStatus()
