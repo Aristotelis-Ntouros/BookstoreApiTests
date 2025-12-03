@@ -1,50 +1,62 @@
 # Bookstore API Test Automation Framework
 
-A comprehensive API test automation framework for testing the FakeRestAPI Bookstore endpoints using .NET 8, xUnit, and FluentAssertions.
+A comprehensive, enterprise-grade API test automation framework for testing the FakeRestAPI Bookstore endpoints using .NET 8, RestSharp, xUnit, and best-in-class libraries.
 
-## Project Overview
+## 🎯 Project Overview
 
-This project automates testing of the RESTful API for an online bookstore, covering both Books and Authors API endpoints with happy path and edge case scenarios.
+This project demonstrates senior-level API test automation skills, covering CRUD operations for both Books and Authors API endpoints with comprehensive test coverage including happy paths, edge cases, and error handling.
 
-### API Endpoints Covered
+### API Under Test
 
-**Books API:**
-- `GET /api/v1/Books` - Retrieve all books
-- `GET /api/v1/Books/{id}` - Retrieve book by ID
-- `POST /api/v1/Books` - Create a new book
-- `PUT /api/v1/Books/{id}` - Update a book
-- `DELETE /api/v1/Books/{id}` - Delete a book
+**Base URL:** `https://fakerestapi.azurewebsites.net`
 
-**Authors API (Bonus):**
-- `GET /api/v1/Authors` - Retrieve all authors
-- `GET /api/v1/Authors/{id}` - Retrieve author by ID
-- `POST /api/v1/Authors` - Create a new author
-- `PUT /api/v1/Authors/{id}` - Update an author
-- `DELETE /api/v1/Authors/{id}` - Delete an author
+**Books API Endpoints:**
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v1/Books` | Retrieve all books |
+| GET | `/api/v1/Books/{id}` | Retrieve book by ID |
+| POST | `/api/v1/Books` | Create a new book |
+| PUT | `/api/v1/Books/{id}` | Update a book |
+| DELETE | `/api/v1/Books/{id}` | Delete a book |
 
-## Project Structure
+**Authors API Endpoints:**
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v1/Authors` | Retrieve all authors |
+| GET | `/api/v1/Authors/{id}` | Retrieve author by ID |
+| POST | `/api/v1/Authors` | Create a new author |
+| PUT | `/api/v1/Authors/{id}` | Update an author |
+| DELETE | `/api/v1/Authors/{id}` | Delete an author |
+
+---
+
+## 📁 Project Structure
 
 ```
 BookstoreApiTests/
 ├── .github/
 │   └── workflows/
-│       └── ci.yml                 # GitHub Actions CI/CD pipeline
+│       ├── ci.yml                    # Main CI/CD pipeline
+│       └── run-tests.yml             # Reusable test workflow
 ├── src/
 │   └── BookstoreApiTests.Tests/
-│       ├── Clients/               # API client classes
-│       │   ├── ApiClientBase.cs   # Base HTTP client
-│       │   ├── BooksApiClient.cs  # Books API client
-│       │   └── AuthorsApiClient.cs# Authors API client
-│       ├── Configuration/         # Configuration management
-│       │   ├── ApiSettings.cs
-│       │   └── ConfigurationManager.cs
-│       ├── Fixtures/              # Test fixtures
-│       │   ├── BooksApiFixture.cs
-│       │   └── AuthorsApiFixture.cs
-│       ├── Models/                # Data models
-│       │   ├── Book.cs
-│       │   └── Author.cs
-│       ├── Tests/                 # Test classes
+│       ├── Clients/                  # API client classes (RestSharp)
+│       │   ├── ApiClientBase.cs      # Base client with retry policy
+│       │   ├── BooksApiClient.cs     # Books API operations
+│       │   └── AuthorsApiClient.cs   # Authors API operations
+│       ├── Configuration/            # Environment configuration
+│       │   ├── ApiSettings.cs        # Settings model
+│       │   └── ConfigurationManager.cs # Config loader
+│       ├── Fixtures/                 # xUnit test fixtures
+│       │   ├── BooksApiFixture.cs    # Books test fixture
+│       │   └── AuthorsApiFixture.cs  # Authors test fixture
+│       ├── Infrastructure/           # Test infrastructure
+│       │   ├── TestCategories.cs     # Test categorization (Smoke/Regression)
+│       │   └── LoggerConfiguration.cs # Serilog setup
+│       ├── Models/                   # Data models
+│       │   ├── Book.cs               # Book entity
+│       │   └── Author.cs             # Author entity
+│       ├── Tests/                    # Test classes
 │       │   ├── Books/
 │       │   │   ├── GetAllBooksTests.cs
 │       │   │   ├── GetBookByIdTests.cs
@@ -57,24 +69,32 @@ BookstoreApiTests/
 │       │       ├── CreateAuthorTests.cs
 │       │       ├── UpdateAuthorTests.cs
 │       │       └── DeleteAuthorTests.cs
-│       ├── appsettings.json       # Configuration file
-│       ├── allureConfig.json      # Allure reporting config
+│       ├── appsettings.json          # Default configuration
+│       ├── appsettings.Development.json  # Dev environment config
+│       ├── appsettings.Production.json   # Prod environment config
+│       ├── allureConfig.json         # Allure reporting config
+│       ├── xunit.runner.json         # xUnit parallel execution config
 │       └── BookstoreApiTests.Tests.csproj
 ├── BookstoreApiTests.sln
 └── README.md
 ```
 
-## Prerequisites
+---
+
+## 🛠️ Prerequisites
 
 - [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
-- [Allure Command Line](https://docs.qameta.io/allure/#_installing_a_commandline) (for generating reports locally)
+- [Git](https://git-scm.com/)
+- [Allure Command Line](https://docs.qameta.io/allure/#_installing_a_commandline) (optional, for local report generation)
 
-## Setup Instructions
+---
+
+## 🚀 Quick Start
 
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/BookstoreApiTests.git
+git clone https://github.com/Aristotelis-Ntouros/BookstoreApiTests.git
 cd BookstoreApiTests
 ```
 
@@ -90,7 +110,15 @@ dotnet restore
 dotnet build
 ```
 
-## Running Tests
+### 4. Run All Tests
+
+```bash
+dotnet test
+```
+
+---
+
+## 🧪 Running Tests
 
 ### Run All Tests
 
@@ -98,13 +126,28 @@ dotnet build
 dotnet test
 ```
 
-### Run Tests with Detailed Output
+### Run with Detailed Output
 
 ```bash
 dotnet test --logger "console;verbosity=detailed"
 ```
 
-### Run Specific Test Category
+### Run by Test Category
+
+The framework supports **Smoke** and **Regression** test categories:
+
+```bash
+# Run only Smoke tests (quick health check)
+dotnet test --filter "Category=Smoke"
+
+# Run only Regression tests (comprehensive)
+dotnet test --filter "Category=Regression"
+
+# Run both Smoke and Regression
+dotnet test --filter "Category=Smoke|Category=Regression"
+```
+
+### Run by API Endpoint
 
 ```bash
 # Run only Books API tests
@@ -112,112 +155,295 @@ dotnet test --filter "FullyQualifiedName~Books"
 
 # Run only Authors API tests
 dotnet test --filter "FullyQualifiedName~Authors"
+
+# Run specific test class
+dotnet test --filter "FullyQualifiedName~GetAllBooksTests"
 ```
 
-### Run Tests with TRX Report
+### Run with TRX Report
 
 ```bash
 dotnet test --logger "trx;LogFileName=test-results.trx" --results-directory ./TestResults
 ```
 
-## Test Reporting
+---
 
-### Generate Allure Report
+## 🌍 Environment Configuration
 
-1. Run tests to generate Allure results:
+The framework supports multiple environments through configuration files:
+
+| Environment | Config File | Description |
+|-------------|-------------|-------------|
+| Development | `appsettings.Development.json` | Default, for local testing |
+| Production | `appsettings.Production.json` | Production API settings |
+
+### Switch Environment
+
+Set the `TEST_ENVIRONMENT` environment variable:
+
 ```bash
+# Windows PowerShell
+$env:TEST_ENVIRONMENT="Production"
 dotnet test
+
+# Windows CMD
+set TEST_ENVIRONMENT=Production
+dotnet test
+
+# Linux/macOS
+TEST_ENVIRONMENT=Production dotnet test
 ```
 
-2. Generate and open Allure report:
-```bash
-allure serve ./src/BookstoreApiTests.Tests/bin/Debug/net8.0/allure-results
-```
-
-Or generate static report:
-```bash
-allure generate ./src/BookstoreApiTests.Tests/bin/Debug/net8.0/allure-results -o allure-report
-allure open allure-report
-```
-
-## CI/CD Pipeline
-
-The project includes a GitHub Actions workflow (`.github/workflows/ci.yml`) that:
-
-1. **Triggers on:**
-   - Push to `main`, `master`, or `develop` branches
-   - Pull requests to `main` or `master`
-   - Manual workflow dispatch
-
-2. **Pipeline Steps:**
-   - Checkout code
-   - Setup .NET 8.0
-   - Restore dependencies
-   - Build project
-   - Run tests
-   - Generate Allure report
-   - Upload test artifacts
-   - Deploy report to GitHub Pages (on main/master)
-
-### Viewing CI/CD Results
-
-- Test results are available in the GitHub Actions tab
-- Allure reports are uploaded as artifacts
-- Reports are deployed to GitHub Pages on main branch pushes
-
-## Configuration
-
-### API Settings
-
-Edit `appsettings.json` to configure:
+### Configuration Settings
 
 ```json
 {
   "ApiSettings": {
     "BaseUrl": "https://fakerestapi.azurewebsites.net",
     "TimeoutSeconds": 30
+  },
+  "RetryPolicy": {
+    "MaxRetries": 3,
+    "BaseDelaySeconds": 1
+  },
+  "Logging": {
+    "MinimumLevel": "Information"
   }
 }
 ```
 
-### Environment Variables
+---
 
-You can override settings using environment variables:
-- `ApiSettings__BaseUrl` - API base URL
-- `ApiSettings__TimeoutSeconds` - Request timeout
+## 📊 Test Reporting
 
-## Test Coverage
+### Allure Reports
 
-### Happy Path Tests
-- Successful CRUD operations
-- Valid data handling
-- Proper response codes and content types
+#### Generate and View Report (Local)
 
-### Edge Case Tests
-- Invalid IDs (negative, zero, non-existent, max int)
-- Empty/null values
-- Special characters and Unicode
-- Boundary conditions
-- Idempotency checks
+```bash
+# 1. Run tests
+dotnet test
 
-## Technologies Used
+# 2. Serve report (opens browser)
+allure serve ./src/BookstoreApiTests.Tests/bin/Debug/net8.0/allure-results
 
-- **.NET 8.0** - Target framework
-- **xUnit** - Test framework
-- **FluentAssertions** - Assertion library
-- **Allure.Xunit** - Test reporting
-- **Microsoft.Extensions.Configuration** - Configuration management
-- **GitHub Actions** - CI/CD pipeline
+# Or generate static report
+allure generate ./src/BookstoreApiTests.Tests/bin/Debug/net8.0/allure-results -o allure-report
+allure open allure-report
+```
 
-## Best Practices Implemented
+### CI/CD Reports
 
-- **Clean Architecture** - Separation of concerns with dedicated folders
-- **DRY Principle** - Reusable API clients and fixtures
+- **GitHub Actions:** Test results are visible in the Actions tab
+- **Allure Reports:** Automatically generated and uploaded as artifacts
+- **GitHub Pages:** Reports deployed on main branch pushes
+
+---
+
+## 🔄 CI/CD Pipeline
+
+The project includes a comprehensive GitHub Actions workflow:
+
+### Pipeline Triggers
+
+| Trigger | Branches | Description |
+|---------|----------|-------------|
+| Push | `main`, `master`, `develop` | Automatic on code push |
+| Pull Request | `main`, `master` | On PR creation/update |
+| Manual | Any | Workflow dispatch with options |
+
+### Manual Run Options
+
+When triggering manually, you can configure:
+
+| Option | Values | Default | Description |
+|--------|--------|---------|-------------|
+| .NET Version | `8.0.x`, `7.0.x`, `6.0.x` | `8.0.x` | SDK version |
+| Configuration | `Debug`, `Release` | `Release` | Build config |
+| Environment | `Development`, `Production` | `Development` | Target env |
+| Test Filter | `all`, `smoke`, `regression` | `all` | Test category |
+| Generate Report | `true`, `false` | `true` | Allure report |
+
+### Pipeline Steps
+
+1. **Build Job:**
+   - Checkout code
+   - Setup .NET SDK
+   - Cache NuGet packages
+   - Restore dependencies
+   - Build project
+   - Upload build artifacts
+
+2. **Test Job:**
+   - Download build artifacts
+   - Run tests with selected filter
+   - Generate test results (TRX)
+   - Generate Allure report
+   - Upload test artifacts
+   - Publish test summary
+
+3. **Deploy Job (on main/master):**
+   - Deploy Allure report to GitHub Pages
+
+---
+
+## 🧰 Technologies & Libraries
+
+| Technology | Purpose |
+|------------|---------|
+| **.NET 8.0** | Target framework |
+| **RestSharp** | HTTP client for API calls |
+| **xUnit** | Test framework |
+| **FluentAssertions** | Fluent assertion library |
+| **Polly** | Retry policies & resilience |
+| **Serilog** | Structured logging |
+| **Allure.Xunit** | Test reporting |
+| **Microsoft.Extensions.Configuration** | Configuration management |
+| **GitHub Actions** | CI/CD pipeline |
+
+---
+
+## 🏗️ Architecture & Patterns
+
+### API Client Pattern
+
+```csharp
+// Base client with retry policy and logging
+public class ApiClientBase
+{
+    protected readonly RestClient _client;
+    protected readonly IAsyncPolicy<RestResponse> _retryPolicy;
+    protected readonly ILogger _logger;
+
+    protected async Task<RestResponse<T>> ExecuteWithRetry<T>(RestRequest request)
+    {
+        return await _retryPolicy.ExecuteAsync(async () =>
+            await _client.ExecuteAsync<T>(request));
+    }
+}
+```
+
+### Test Categories
+
+Tests are categorized using custom xUnit traits:
+
+```csharp
+[Fact]
+[SmokeTest]        // Quick health checks
+[RegressionTest]   // Comprehensive testing
+public async Task GetAllBooks_ReturnsOkStatus()
+{
+    // Test implementation
+}
+```
+
+### Retry Policy
+
+Automatic retry with exponential backoff for transient failures:
+
+```csharp
+// Retries: 1s → 2s → 4s (exponential backoff)
+Policy<RestResponse>
+    .HandleResult(r => IsTransientError(r))
+    .WaitAndRetryAsync(3, retryAttempt =>
+        TimeSpan.FromSeconds(Math.Pow(2, retryAttempt - 1)));
+```
+
+---
+
+## 📋 Test Coverage
+
+### Test Categories
+
+| Category | Purpose | When to Run |
+|----------|---------|-------------|
+| **Smoke** | Quick API health check | Every deployment |
+| **Regression** | Full test coverage | Scheduled/Release |
+
+### Test Types
+
+| Type | Description | Example |
+|------|-------------|---------|
+| Happy Path | Valid inputs, expected success | Get existing book |
+| Edge Case | Boundary conditions | Max int ID, empty values |
+| Error Handling | Invalid inputs | Non-existent ID, negative values |
+| Data Validation | Response structure | Required fields present |
+
+### Coverage Summary
+
+| Endpoint | Happy Path | Edge Cases | Total Tests |
+|----------|------------|------------|-------------|
+| GET /Books | ✅ 4 | ✅ 1 | 5 |
+| GET /Books/{id} | ✅ 4 | ✅ 4 | 8 |
+| POST /Books | ✅ 2 | ✅ 6 | 8 |
+| PUT /Books/{id} | ✅ 4 | ✅ 6 | 10 |
+| DELETE /Books/{id} | ✅ 2 | ✅ 6 | 8 |
+| Authors API | ✅ Similar coverage | ✅ | ~35 |
+| **Total** | | | **~75 tests** |
+
+---
+
+## ✅ Best Practices Implemented
+
+- **Clean Architecture** - Clear separation of concerns
+- **DRY Principle** - Reusable clients, fixtures, and utilities
 - **SOLID Principles** - Single responsibility, dependency injection
-- **Maintainability** - Clear naming conventions, organized structure
-- **Scalability** - Easy to add new endpoints and tests
-- **Reporting** - Comprehensive test reports with Allure
+- **Resilience** - Retry policies for transient failures
+- **Observability** - Structured logging with Serilog
+- **Parallel Execution** - Tests run in parallel for speed
+- **Environment Isolation** - Separate configs per environment
+- **Comprehensive Reporting** - Allure reports with rich metadata
+- **CI/CD Integration** - Automated testing and deployment
 
-## License
+---
+
+## 🐛 Troubleshooting
+
+### Tests Failing with Timeout
+
+Increase timeout in `appsettings.json`:
+```json
+{
+  "ApiSettings": {
+    "TimeoutSeconds": 60
+  }
+}
+```
+
+### Allure Report Not Generating
+
+Ensure Allure CLI is installed:
+```bash
+# macOS
+brew install allure
+
+# Windows (Scoop)
+scoop install allure
+
+# Linux
+sudo apt-get install allure
+```
+
+### Environment Variable Not Working
+
+Ensure the variable is set before running tests:
+```powershell
+# PowerShell - verify
+$env:TEST_ENVIRONMENT
+```
+
+---
+
+## 📝 License
 
 MIT License
+
+---
+
+## 👨‍💻 Author
+
+Created as a Senior Automation Engineer assessment project demonstrating:
+- API test automation expertise
+- Clean code architecture
+- CI/CD pipeline design
+- Best practices implementation
