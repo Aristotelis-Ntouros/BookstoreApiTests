@@ -1,4 +1,4 @@
-name: API Test Runner
+name: Run Tests and Generate Report
 
 on:
   workflow_call:
@@ -33,7 +33,7 @@ on:
 
 jobs:
   test:
-    name: Run API Tests
+    name: Run Tests
     runs-on: ubuntu-latest
 
     outputs:

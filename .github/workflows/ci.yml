@@ -3,8 +3,6 @@ name: Test Automation Pipeline
 on:
   push:
     branches: [ main, master, develop ]
-  pull_request:
-    branches: [ main, master ]
   workflow_dispatch:
     inputs:
       configuration:
@@ -98,7 +96,7 @@ jobs:
       contents: read
       checks: write
       pull-requests: write
-    uses: ./.github/workflows/reusable-test.yml
+    uses: ./.github/workflows/run-tests.yml
     with:
       dotnet-version: '8.0.x'
       configuration: ${{ github.event.inputs.configuration || 'Release' }}
