@@ -58,11 +58,6 @@ jobs:
       passed: ${{ steps.test-count.outputs.passed }}
       failed: ${{ steps.test-count.outputs.failed }}
 
-    permissions:
-      contents: read
-      checks: write
-      pull-requests: write
-
     env:
       TEST_ENVIRONMENT: ${{ inputs.environment }}
 
