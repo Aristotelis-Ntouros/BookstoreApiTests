@@ -238,7 +238,11 @@ allure open allure-report
 
 ## CI/CD Pipeline
 
-The project includes a comprehensive GitHub Actions workflow with **reusable workflow architecture** for maintainability and DRY principles:
+The project includes a comprehensive GitHub Actions workflow with **reusable workflow architecture** for maintainability and DRY principles.
+
+### Pipeline Execution Example
+
+![CI/CD Pipeline Success](docs/images/ci-pipeline-success.png)
 
 ### Workflow Architecture
 
