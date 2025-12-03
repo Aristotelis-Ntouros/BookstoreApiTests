@@ -242,7 +242,25 @@ allure open allure-report
 
 ## 🔄 CI/CD Pipeline
 
-The project includes a comprehensive GitHub Actions workflow:
+The project includes a comprehensive GitHub Actions workflow with **reusable workflow architecture** for maintainability and DRY principles:
+
+### Workflow Architecture
+
+```
+ci.yml (Main Workflow)
+├── build job
+├── calls → run-tests.yml (Reusable Workflow)
+│   ├── test execution
+│   ├── Allure report generation
+│   └── test artifacts upload
+└── deploy job (GitHub Pages)
+```
+
+The test execution logic is extracted into a **reusable workflow** (`run-tests.yml`) that can be called from multiple pipelines with different parameters, enabling:
+- Consistent test execution across different workflows
+- Easy customization via input parameters
+- Reduced code duplication
+- Simplified maintenance
 
 ### Pipeline Triggers
 
@@ -432,18 +450,3 @@ Ensure the variable is set before running tests:
 $env:TEST_ENVIRONMENT
 ```
 
----
-
-## 📝 License
-
-MIT License
-
----
-
-## 👨‍💻 Author
-
-Created as a Senior Automation Engineer assessment project demonstrating:
-- API test automation expertise
-- Clean code architecture
-- CI/CD pipeline design
-- Best practices implementation
