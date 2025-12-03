@@ -212,6 +212,10 @@ TEST_ENVIRONMENT=Production dotnet test
 
 ## Test Reporting
 
+### Live Allure Report
+
+**Latest Report:** [https://aristotelis-ntouros.github.io/BookstoreApiTests/](https://aristotelis-ntouros.github.io/BookstoreApiTests/)
+
 ### Allure Reports
 
 #### Generate and View Report (Local)
