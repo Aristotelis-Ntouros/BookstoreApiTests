@@ -91,10 +91,10 @@ BookstoreApiTests/
 
 ## 🚀 Quick Start
 
-### 1. Clone the Repository
+### 1. Extract/Setup the Project
 
 ```bash
-git clone https://github.com/Aristotelis-Ntouros/BookstoreApiTests.git
+# Extract the project files to a directory
 cd BookstoreApiTests
 ```
 
