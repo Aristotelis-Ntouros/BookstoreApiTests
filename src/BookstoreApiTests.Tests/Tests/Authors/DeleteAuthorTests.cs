@@ -2,6 +2,7 @@ using System.Net;
 using Allure.Xunit.Attributes;
 using FluentAssertions;
 using BookstoreApiTests.Tests.Fixtures;
+using BookstoreApiTests.Tests.Infrastructure;
 
 namespace BookstoreApiTests.Tests.Tests.Authors;
 
@@ -18,6 +19,8 @@ public class DeleteAuthorTests
     }
 
     [Fact]
+    [SmokeTest]
+    [RegressionTest]
     [AllureFeature("Delete Author")]
     [AllureStory("Happy Path")]
     public async Task DeleteAuthor_WithValidId_ReturnsOkStatus()
@@ -36,6 +39,7 @@ public class DeleteAuthorTests
     [InlineData(1)]
     [InlineData(10)]
     [InlineData(50)]
+    [RegressionTest]
     [AllureFeature("Delete Author")]
     [AllureStory("Happy Path")]
     public async Task DeleteAuthor_WithVariousValidIds_ReturnsOkStatus(int authorId)
@@ -48,6 +52,7 @@ public class DeleteAuthorTests
     }
 
     [Fact]
+    [RegressionTest]
     [AllureFeature("Delete Author")]
     [AllureStory("Edge Case")]
     public async Task DeleteAuthor_WithNonExistentId_ReturnsOkStatus()
@@ -63,6 +68,7 @@ public class DeleteAuthorTests
     }
 
     [Fact]
+    [RegressionTest]
     [AllureFeature("Delete Author")]
     [AllureStory("Edge Case")]
     public async Task DeleteAuthor_WithZeroId_ReturnsOkStatus()
@@ -78,6 +84,7 @@ public class DeleteAuthorTests
     }
 
     [Fact]
+    [RegressionTest]
     [AllureFeature("Delete Author")]
     [AllureStory("Edge Case")]
     public async Task DeleteAuthor_WithNegativeId_ReturnsOkStatus()
@@ -93,6 +100,7 @@ public class DeleteAuthorTests
     }
 
     [Fact]
+    [RegressionTest]
     [AllureFeature("Delete Author")]
     [AllureStory("Edge Case")]
     public async Task DeleteAuthor_CalledTwiceOnSameId_BothReturnOkStatus()

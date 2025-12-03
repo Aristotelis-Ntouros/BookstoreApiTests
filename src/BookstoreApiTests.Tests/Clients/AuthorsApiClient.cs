@@ -1,5 +1,6 @@
-using System.Net.Http.Json;
+using RestSharp;
 using BookstoreApiTests.Tests.Models;
+using BookstoreApiTests.Tests.Infrastructure;
 
 namespace BookstoreApiTests.Tests.Clients;
 
@@ -7,62 +8,41 @@ public class AuthorsApiClient : ApiClientBase
 {
     private const string AuthorsEndpoint = "/api/v1/Authors";
 
-    public async Task<HttpResponseMessage> GetAllAuthorsResponse()
+    public async Task<RestResponse<List<Author>>> GetAllAuthors()
     {
-        return await GetAsync(AuthorsEndpoint);
+        var request = new RestRequest(AuthorsEndpoint, Method.Get);
+        return await ExecuteWithRetry<List<Author>>(request);
     }
 
-    public async Task<List<Author>?> GetAllAuthors()
+    public async Task<RestResponse<Author>> GetAuthorById(int id)
     {
-        return await GetAsync<List<Author>>(AuthorsEndpoint);
+        var request = new RestRequest($"{AuthorsEndpoint}/{id}", Method.Get);
+        return await ExecuteWithRetry<Author>(request);
     }
 
-    public async Task<HttpResponseMessage> GetAuthorByIdResponse(int id)
+    public async Task<RestResponse<Author>> CreateAuthor(Author author)
     {
-        return await GetAsync($"{AuthorsEndpoint}/{id}");
+        var request = new RestRequest(AuthorsEndpoint, Method.Post);
+        request.AddJsonBody(author);
+        return await ExecuteWithRetry<Author>(request);
     }
 
-    public async Task<Author?> GetAuthorById(int id)
+    public async Task<RestResponse<Author>> UpdateAuthor(int id, Author author)
     {
-        return await GetAsync<Author>($"{AuthorsEndpoint}/{id}");
+        var request = new RestRequest($"{AuthorsEndpoint}/{id}", Method.Put);
+        request.AddJsonBody(author);
+        return await ExecuteWithRetry<Author>(request);
     }
 
-    public async Task<HttpResponseMessage> CreateAuthor(Author author)
+    public async Task<RestResponse> DeleteAuthor(int id)
     {
-        return await PostAsync(AuthorsEndpoint, author);
+        var request = new RestRequest($"{AuthorsEndpoint}/{id}", Method.Delete);
+        return await ExecuteWithRetry(request);
     }
 
-    public async Task<Author?> CreateAuthorAndReturn(Author author)
+    public async Task<RestResponse<List<Author>>> GetAuthorsByBookId(int bookId)
     {
-        var response = await PostAsync(AuthorsEndpoint, author);
-        response.EnsureSuccessStatusCode();
-        return await response.Content.ReadFromJsonAsync<Author>(JsonOptions);
-    }
-
-    public async Task<HttpResponseMessage> UpdateAuthor(int id, Author author)
-    {
-        return await PutAsync($"{AuthorsEndpoint}/{id}", author);
-    }
-
-    public async Task<Author?> UpdateAuthorAndReturn(int id, Author author)
-    {
-        var response = await PutAsync($"{AuthorsEndpoint}/{id}", author);
-        response.EnsureSuccessStatusCode();
-        return await response.Content.ReadFromJsonAsync<Author>(JsonOptions);
-    }
-
-    public async Task<HttpResponseMessage> DeleteAuthor(int id)
-    {
-        return await DeleteAsync($"{AuthorsEndpoint}/{id}");
-    }
-
-    public async Task<HttpResponseMessage> GetAuthorsByBookIdResponse(int bookId)
-    {
-        return await GetAsync($"/api/v1/Authors/authors/books/{bookId}");
-    }
-
-    public async Task<List<Author>?> GetAuthorsByBookId(int bookId)
-    {
-        return await GetAsync<List<Author>>($"/api/v1/Authors/authors/books/{bookId}");
+        var request = new RestRequest($"/api/v1/Authors/authors/books/{bookId}", Method.Get);
+        return await ExecuteWithRetry<List<Author>>(request);
     }
 }

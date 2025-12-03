@@ -3,6 +3,7 @@ using Allure.Xunit.Attributes;
 using FluentAssertions;
 using BookstoreApiTests.Tests.Fixtures;
 using BookstoreApiTests.Tests.Models;
+using BookstoreApiTests.Tests.Infrastructure;
 
 namespace BookstoreApiTests.Tests.Tests.Books;
 
@@ -29,6 +30,8 @@ public class UpdateBookTests
     };
 
     [Fact]
+    [SmokeTest]
+    [RegressionTest]
     [AllureFeature("Update Book")]
     [AllureStory("Happy Path")]
     public async Task UpdateBook_WithValidData_ReturnsOkStatus()
@@ -45,6 +48,8 @@ public class UpdateBookTests
     }
 
     [Fact]
+    [SmokeTest]
+    [RegressionTest]
     [AllureFeature("Update Book")]
     [AllureStory("Happy Path")]
     public async Task UpdateBook_WithValidData_ReturnsUpdatedBook()
@@ -55,18 +60,20 @@ public class UpdateBookTests
         updatedBook.Title = "Unique Updated Title " + Guid.NewGuid();
 
         // Act
-        var result = await _fixture.Client.UpdateBookAndReturn(bookId, updatedBook);
+        var response = await _fixture.Client.UpdateBook(bookId, updatedBook);
 
         // Assert
-        result.Should().NotBeNull();
-        result!.Id.Should().Be(bookId);
-        result.Title.Should().Be(updatedBook.Title);
+        response.IsSuccessful.Should().BeTrue();
+        response.Data.Should().NotBeNull();
+        response.Data!.Id.Should().Be(bookId);
+        response.Data.Title.Should().Be(updatedBook.Title);
     }
 
     [Theory]
     [InlineData(1)]
     [InlineData(10)]
     [InlineData(50)]
+    [RegressionTest]
     [AllureFeature("Update Book")]
     [AllureStory("Happy Path")]
     public async Task UpdateBook_WithVariousValidIds_ReturnsOkStatus(int bookId)
@@ -82,6 +89,7 @@ public class UpdateBookTests
     }
 
     [Fact]
+    [RegressionTest]
     [AllureFeature("Update Book")]
     [AllureStory("Happy Path")]
     public async Task UpdateBook_WithPartialData_ReturnsOkStatus()
@@ -103,6 +111,7 @@ public class UpdateBookTests
     }
 
     [Fact]
+    [RegressionTest]
     [AllureFeature("Update Book")]
     [AllureStory("Edge Case")]
     public async Task UpdateBook_WithNonExistentId_ReturnsOkStatus()
@@ -119,6 +128,7 @@ public class UpdateBookTests
     }
 
     [Fact]
+    [RegressionTest]
     [AllureFeature("Update Book")]
     [AllureStory("Edge Case")]
     public async Task UpdateBook_WithMismatchedIds_ReturnsOkStatus()
@@ -135,6 +145,7 @@ public class UpdateBookTests
     }
 
     [Fact]
+    [RegressionTest]
     [AllureFeature("Update Book")]
     [AllureStory("Edge Case")]
     public async Task UpdateBook_WithZeroId_ReturnsOkStatus()
@@ -151,6 +162,7 @@ public class UpdateBookTests
     }
 
     [Fact]
+    [RegressionTest]
     [AllureFeature("Update Book")]
     [AllureStory("Edge Case")]
     public async Task UpdateBook_WithNegativeId_ReturnsOkStatus()
@@ -167,6 +179,7 @@ public class UpdateBookTests
     }
 
     [Fact]
+    [RegressionTest]
     [AllureFeature("Update Book")]
     [AllureStory("Edge Case")]
     public async Task UpdateBook_WithEmptyTitle_ReturnsOkStatus()
@@ -184,6 +197,7 @@ public class UpdateBookTests
     }
 
     [Fact]
+    [RegressionTest]
     [AllureFeature("Update Book")]
     [AllureStory("Edge Case")]
     public async Task UpdateBook_WithSpecialCharacters_ReturnsOkStatus()

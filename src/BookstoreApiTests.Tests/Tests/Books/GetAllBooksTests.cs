@@ -2,6 +2,7 @@ using System.Net;
 using Allure.Xunit.Attributes;
 using FluentAssertions;
 using BookstoreApiTests.Tests.Fixtures;
+using BookstoreApiTests.Tests.Infrastructure;
 
 namespace BookstoreApiTests.Tests.Tests.Books;
 
@@ -18,54 +19,61 @@ public class GetAllBooksTests
     }
 
     [Fact]
+    [SmokeTest]
+    [RegressionTest]
     [AllureFeature("Get All Books")]
     [AllureStory("Happy Path")]
     public async Task GetAllBooks_ReturnsOkStatus()
     {
         // Act
-        var response = await _fixture.Client.GetAllBooksResponse();
+        var response = await _fixture.Client.GetAllBooks();
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
     [Fact]
+    [SmokeTest]
+    [RegressionTest]
     [AllureFeature("Get All Books")]
     [AllureStory("Happy Path")]
     public async Task GetAllBooks_ReturnsNonEmptyList()
     {
         // Act
-        var books = await _fixture.Client.GetAllBooks();
+        var response = await _fixture.Client.GetAllBooks();
 
         // Assert
-        books.Should().NotBeNull();
-        books.Should().NotBeEmpty();
+        response.IsSuccessful.Should().BeTrue();
+        response.Data.Should().NotBeNull();
+        response.Data.Should().NotBeEmpty();
     }
 
     [Fact]
+    [RegressionTest]
     [AllureFeature("Get All Books")]
     [AllureStory("Happy Path")]
     public async Task GetAllBooks_ReturnsValidBookStructure()
     {
         // Act
-        var books = await _fixture.Client.GetAllBooks();
+        var response = await _fixture.Client.GetAllBooks();
 
         // Assert
-        books.Should().NotBeNull();
-        var firstBook = books!.First();
+        response.Data.Should().NotBeNull();
+        var firstBook = response.Data!.First();
         firstBook.Id.Should().BeGreaterThan(0);
         firstBook.Title.Should().NotBeNullOrEmpty();
     }
 
     [Fact]
+    [RegressionTest]
     [AllureFeature("Get All Books")]
     [AllureStory("Happy Path")]
     public async Task GetAllBooks_ReturnsJsonContentType()
     {
         // Act
-        var response = await _fixture.Client.GetAllBooksResponse();
+        var response = await _fixture.Client.GetAllBooks();
 
         // Assert
-        response.Content.Headers.ContentType?.MediaType.Should().Be("application/json");
+        response.ContentType.Should().Contain("application/json");
     }
 }

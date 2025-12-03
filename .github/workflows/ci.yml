@@ -13,10 +13,28 @@ on:
         options:
           - Release
           - Debug
+      environment:
+        description: 'Target environment'
+        required: false
+        default: 'Development'
+        type: choice
+        options:
+          - Development
+          - Production
+      test_filter:
+        description: 'Test category filter'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - smoke
+          - regression
 
 env:
   DOTNET_VERSION: '8.0.x'
   CONFIGURATION: ${{ github.event.inputs.configuration || 'Release' }}
+  TEST_ENVIRONMENT: ${{ github.event.inputs.environment || 'Development' }}
 
 jobs:
   # ============================================
@@ -100,6 +118,8 @@ jobs:
     with:
       dotnet-version: '8.0.x'
       configuration: ${{ github.event.inputs.configuration || 'Release' }}
+      environment: ${{ github.event.inputs.environment || 'Development' }}
+      test-filter: ${{ github.event.inputs.test_filter || 'all' }}
       run-tests: true
       generate-report: true
 
@@ -170,5 +190,7 @@ jobs:
         echo "| Deploy | ${{ needs.deploy-report.result }} |" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "**Version:** ${{ needs.build.outputs.build-version }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Environment:** ${{ github.event.inputs.environment || 'Development' }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Test Filter:** ${{ github.event.inputs.test_filter || 'all' }}" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "**Allure Report:** [View](https://aristotelis-ntouros.github.io/BookstoreApiTests/)" >> $GITHUB_STEP_SUMMARY

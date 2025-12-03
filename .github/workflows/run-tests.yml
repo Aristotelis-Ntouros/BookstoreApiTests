@@ -13,6 +13,16 @@ on:
         required: false
         type: string
         default: 'Release'
+      environment:
+        description: 'Target environment (Development/Production)'
+        required: false
+        type: string
+        default: 'Development'
+      test-filter:
+        description: 'Test category filter (all/smoke/regression)'
+        required: false
+        type: string
+        default: 'all'
       run-tests:
         description: 'Whether to run tests'
         required: false
@@ -30,6 +40,12 @@ on:
       total-tests:
         description: 'Total number of tests'
         value: ${{ jobs.test.outputs.total }}
+      passed-tests:
+        description: 'Number of passed tests'
+        value: ${{ jobs.test.outputs.passed }}
+      failed-tests:
+        description: 'Number of failed tests'
+        value: ${{ jobs.test.outputs.failed }}
 
 jobs:
   test:
@@ -39,11 +55,16 @@ jobs:
     outputs:
       result: ${{ steps.test-run.outcome }}
       total: ${{ steps.test-count.outputs.total }}
+      passed: ${{ steps.test-count.outputs.passed }}
+      failed: ${{ steps.test-count.outputs.failed }}
 
     permissions:
       contents: read
       checks: write
       pull-requests: write
+
+    env:
+      TEST_ENVIRONMENT: ${{ inputs.environment }}
 
     steps:
     - name: Checkout repository
@@ -81,16 +102,38 @@ jobs:
           echo "Using downloaded build artifacts"
         fi
 
+    - name: Determine test filter
+      id: filter
+      run: |
+        if [ "${{ inputs.test-filter }}" == "smoke" ]; then
+          echo "filter=Category=Smoke" >> $GITHUB_OUTPUT
+        elif [ "${{ inputs.test-filter }}" == "regression" ]; then
+          echo "filter=Category=Regression" >> $GITHUB_OUTPUT
+        else
+          echo "filter=" >> $GITHUB_OUTPUT
+        fi
+
     - name: Run tests
       id: test-run
       if: ${{ inputs.run-tests }}
       run: |
-        dotnet test src/BookstoreApiTests.Tests/BookstoreApiTests.Tests.csproj \
-          --no-build \
-          --configuration ${{ inputs.configuration }} \
-          --logger "trx;LogFileName=test-results.trx" \
-          --logger "console;verbosity=detailed" \
-          --results-directory ./TestResults
+        FILTER="${{ steps.filter.outputs.filter }}"
+        if [ -n "$FILTER" ]; then
+          dotnet test src/BookstoreApiTests.Tests/BookstoreApiTests.Tests.csproj \
+            --no-build \
+            --configuration ${{ inputs.configuration }} \
+            --filter "$FILTER" \
+            --logger "trx;LogFileName=test-results.trx" \
+            --logger "console;verbosity=detailed" \
+            --results-directory ./TestResults
+        else
+          dotnet test src/BookstoreApiTests.Tests/BookstoreApiTests.Tests.csproj \
+            --no-build \
+            --configuration ${{ inputs.configuration }} \
+            --logger "trx;LogFileName=test-results.trx" \
+            --logger "console;verbosity=detailed" \
+            --results-directory ./TestResults
+        fi
       continue-on-error: true
 
     - name: Count tests
@@ -98,11 +141,17 @@ jobs:
       if: always()
       run: |
         if [ -f "./TestResults/test-results.trx" ]; then
-          TOTAL=$(grep -o 'total="[0-9]*"' ./TestResults/test-results.trx | head -1 | grep -o '[0-9]*')
+          TOTAL=$(grep -o 'total="[0-9]*"' ./TestResults/test-results.trx | head -1 | grep -o '[0-9]*' || echo "0")
+          PASSED=$(grep -o 'passed="[0-9]*"' ./TestResults/test-results.trx | head -1 | grep -o '[0-9]*' || echo "0")
+          FAILED=$(grep -o 'failed="[0-9]*"' ./TestResults/test-results.trx | head -1 | grep -o '[0-9]*' || echo "0")
           echo "total=$TOTAL" >> $GITHUB_OUTPUT
-          echo "Total tests: $TOTAL"
+          echo "passed=$PASSED" >> $GITHUB_OUTPUT
+          echo "failed=$FAILED" >> $GITHUB_OUTPUT
+          echo "Total: $TOTAL, Passed: $PASSED, Failed: $FAILED"
         else
           echo "total=0" >> $GITHUB_OUTPUT
+          echo "passed=0" >> $GITHUB_OUTPUT
+          echo "failed=0" >> $GITHUB_OUTPUT
         fi
 
     - name: Upload test results
@@ -154,12 +203,13 @@ jobs:
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
         echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+        echo "| Environment | ${{ inputs.environment }} |" >> $GITHUB_STEP_SUMMARY
         echo "| Configuration | ${{ inputs.configuration }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Test Filter | ${{ inputs.test-filter }} |" >> $GITHUB_STEP_SUMMARY
         echo "| .NET Version | ${{ inputs.dotnet-version }} |" >> $GITHUB_STEP_SUMMARY
         echo "| Test Result | ${{ steps.test-run.outcome }} |" >> $GITHUB_STEP_SUMMARY
         if [ -f "./TestResults/test-results.trx" ]; then
-          PASSED=$(grep -o 'passed="[0-9]*"' ./TestResults/test-results.trx | head -1 | grep -o '[0-9]*' || echo "0")
-          FAILED=$(grep -o 'failed="[0-9]*"' ./TestResults/test-results.trx | head -1 | grep -o '[0-9]*' || echo "0")
-          echo "| Passed | $PASSED |" >> $GITHUB_STEP_SUMMARY
-          echo "| Failed | $FAILED |" >> $GITHUB_STEP_SUMMARY
+          echo "| Total | ${{ steps.test-count.outputs.total }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Passed | ${{ steps.test-count.outputs.passed }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Failed | ${{ steps.test-count.outputs.failed }} |" >> $GITHUB_STEP_SUMMARY
         fi

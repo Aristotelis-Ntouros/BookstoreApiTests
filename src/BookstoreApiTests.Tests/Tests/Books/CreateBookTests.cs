@@ -1,9 +1,9 @@
 using System.Net;
-using System.Net.Http.Json;
 using Allure.Xunit.Attributes;
 using FluentAssertions;
 using BookstoreApiTests.Tests.Fixtures;
 using BookstoreApiTests.Tests.Models;
+using BookstoreApiTests.Tests.Infrastructure;
 
 namespace BookstoreApiTests.Tests.Tests.Books;
 
@@ -30,6 +30,8 @@ public class CreateBookTests
     };
 
     [Fact]
+    [SmokeTest]
+    [RegressionTest]
     [AllureFeature("Create Book")]
     [AllureStory("Happy Path")]
     public async Task CreateBook_WithValidData_ReturnsOkStatus()
@@ -45,6 +47,8 @@ public class CreateBookTests
     }
 
     [Fact]
+    [SmokeTest]
+    [RegressionTest]
     [AllureFeature("Create Book")]
     [AllureStory("Happy Path")]
     public async Task CreateBook_WithValidData_ReturnsCreatedBook()
@@ -54,16 +58,18 @@ public class CreateBookTests
         newBook.Title = "Unique Test Book " + Guid.NewGuid();
 
         // Act
-        var createdBook = await _fixture.Client.CreateBookAndReturn(newBook);
+        var response = await _fixture.Client.CreateBook(newBook);
 
         // Assert
-        createdBook.Should().NotBeNull();
-        createdBook!.Title.Should().Be(newBook.Title);
-        createdBook.Description.Should().Be(newBook.Description);
-        createdBook.PageCount.Should().Be(newBook.PageCount);
+        response.IsSuccessful.Should().BeTrue();
+        response.Data.Should().NotBeNull();
+        response.Data!.Title.Should().Be(newBook.Title);
+        response.Data.Description.Should().Be(newBook.Description);
+        response.Data.PageCount.Should().Be(newBook.PageCount);
     }
 
     [Fact]
+    [RegressionTest]
     [AllureFeature("Create Book")]
     [AllureStory("Happy Path")]
     public async Task CreateBook_WithMinimalData_ReturnsOkStatus()
@@ -85,6 +91,7 @@ public class CreateBookTests
     }
 
     [Fact]
+    [RegressionTest]
     [AllureFeature("Create Book")]
     [AllureStory("Happy Path")]
     public async Task CreateBook_WithLargePageCount_ReturnsOkStatus()
@@ -101,6 +108,7 @@ public class CreateBookTests
     }
 
     [Fact]
+    [RegressionTest]
     [AllureFeature("Create Book")]
     [AllureStory("Edge Case")]
     public async Task CreateBook_WithEmptyTitle_ReturnsOkStatus()
@@ -117,6 +125,7 @@ public class CreateBookTests
     }
 
     [Fact]
+    [RegressionTest]
     [AllureFeature("Create Book")]
     [AllureStory("Edge Case")]
     public async Task CreateBook_WithNullTitle_ReturnsOkStatus()
@@ -133,6 +142,7 @@ public class CreateBookTests
     }
 
     [Fact]
+    [RegressionTest]
     [AllureFeature("Create Book")]
     [AllureStory("Edge Case")]
     public async Task CreateBook_WithZeroPageCount_ReturnsOkStatus()
@@ -149,6 +159,7 @@ public class CreateBookTests
     }
 
     [Fact]
+    [RegressionTest]
     [AllureFeature("Create Book")]
     [AllureStory("Edge Case")]
     public async Task CreateBook_WithNegativePageCount_ReturnsOkStatus()
@@ -165,6 +176,7 @@ public class CreateBookTests
     }
 
     [Fact]
+    [RegressionTest]
     [AllureFeature("Create Book")]
     [AllureStory("Edge Case")]
     public async Task CreateBook_WithFuturePublishDate_ReturnsOkStatus()
@@ -181,6 +193,7 @@ public class CreateBookTests
     }
 
     [Fact]
+    [RegressionTest]
     [AllureFeature("Create Book")]
     [AllureStory("Edge Case")]
     public async Task CreateBook_WithVeryLongTitle_ReturnsOkStatus()
@@ -197,6 +210,7 @@ public class CreateBookTests
     }
 
     [Fact]
+    [RegressionTest]
     [AllureFeature("Create Book")]
     [AllureStory("Edge Case")]
     public async Task CreateBook_WithSpecialCharactersInTitle_ReturnsOkStatus()
@@ -213,13 +227,14 @@ public class CreateBookTests
     }
 
     [Fact]
+    [RegressionTest]
     [AllureFeature("Create Book")]
     [AllureStory("Edge Case")]
     public async Task CreateBook_WithUnicodeCharacters_ReturnsOkStatus()
     {
         // Arrange
         var bookWithUnicode = CreateValidBook();
-        bookWithUnicode.Title = "Test Book with Unicode: \u4e2d\u6587 \u0410\u0411\u0412";
+        bookWithUnicode.Title = "Test Book with Unicode: 中文 АБВ";
 
         // Act
         var response = await _fixture.Client.CreateBook(bookWithUnicode);
